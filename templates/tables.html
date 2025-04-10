@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Database Tables{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Database Tables</h5>
+        <span class="badge bg-light text-dark">{{ db_path }}</span>
+    </div>
+    <div class="card-body">
+        {% if tables %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Table Name</th>
+                        <th width="200">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for table in tables %}
+                    <tr>
+                        <td>{{ table }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('view_table', table_name=table) }}" class="btn btn-outline-primary">
+                                    <i class="bi bi-table"></i> View
+                                </a>
+                                <a href="{{ url_for('dashboard', table_name=table) }}" class="btn btn-primary">
+                                    <i class="bi bi-graph-up"></i> Dashboard
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            No tables found in the database.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Database Stats Section -->
+{% if stats is defined %}
+<div class="card">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Database Statistics</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Total Records:</strong> {{ stats.total_records }}</p>
+        
+        {% if stats.columns is defined %}
+        <h6 class="mt-4 mb-3">Column Statistics:</h6>
+        <div class="row">
+            {% for column, col_stats in stats.columns.items() %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">{{ column }}</div>
+                    <div class="card-body">
+                        {% if col_stats.type is defined and col_stats.type == 'categorical' %}
+                            <p><strong>Unique Values:</strong> {{ col_stats.unique_values }}</p>
+                            <h6>Top Values:</h6>
+                            <ul class="list-group">
+                                {% for value, count in col_stats.top_values.items() %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ value }}
+                                    <span class="badge bg-primary rounded-pill">{{ count }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p><strong>Mean:</strong> {{ col_stats.mean }}</p>
+                            <p><strong>Median:</strong> {{ col_stats.median if col_stats.median is defined else 'N/A' }}</p>
+                            <p><strong>Minimum:</strong> {{ col_stats.min }}</p>
+                            <p><strong>Maximum:</strong> {{ col_stats.max }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="mt-4">
+    <a href="{{ url_for('custom_query') }}" class="btn btn-outline-primary">
+        <i class="bi bi-code-slash"></i> Run Custom Query
+    </a>
+</div>
+{% endblock %}

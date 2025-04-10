@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Data Dashboard - Visualizations{% endblock %}
+{% block title %}Dashboard: {{ table_name }}{% endblock %}
 
 {% block head %}
 <style>
@@ -12,14 +12,29 @@
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
     .chart-container {
-        height: 450px;
+        height: 400px;
         margin-bottom: 30px;
+    }
+    
+    .filter-panel {
+        border-radius: 8px;
+        background-color: #f8f9fa;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Data Dashboard</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Dashboard: {{ table_name }}</h2>
+    <div>
+        <a href="{{ url_for('view_table', table_name=table_name) }}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-table"></i> View Table Data
+        </a>
+        <a href="{{ url_for('tables') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Tables
+        </a>
+    </div>
+</div>
 
 <!-- Stats Cards -->
 <div class="row mb-4">
@@ -31,71 +46,54 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white stats-card">
-            <div class="card-body text-center">
-                <h5 class="card-title">Average Value</h5>
-                <h2 class="display-5">{{ stats.average_value }}</h2>
+    
+    {% for column, col_stats in stats.columns.items() %}
+        {% if 'type' not in col_stats or col_stats.type != 'categorical' %}
+            {% if loop.index <= 3 %}
+            <div class="col-md-3">
+                <div class="card bg-info text-white stats-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ column }} (avg)</h5>
+                        <h2 class="display-5">{{ col_stats.mean }}</h2>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-info text-white stats-card">
-            <div class="card-body text-center">
-                <h5 class="card-title">Maximum Value</h5>
-                <h2 class="display-5">{{ stats.max_value }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-warning text-dark stats-card">
-            <div class="card-body text-center">
-                <h5 class="card-title">Minimum Value</h5>
-                <h2 class="display-5">{{ stats.min_value }}</h2>
-            </div>
-        </div>
-    </div>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
 </div>
 
 <!-- Filter Panel -->
-<div class="card mb-4">
+<div class="card mb-4 filter-panel">
     <div class="card-header bg-light">
         <h5 class="mb-0">Filter Data</h5>
     </div>
     <div class="card-body">
         <form id="filter-form" class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label">Category</label>
-                <div class="d-flex flex-wrap">
-                    <div class="form-check me-3">
-                        <input class="form-check-input category-filter" type="checkbox" value="A" id="categoryA" checked>
-                        <label class="form-check-label" for="categoryA">A</label>
+            {% for column in columns %}
+            {% if column.type in ('TEXT', 'VARCHAR', 'CHAR', 'CHARACTER') %}
+            <div class="col-md-4">
+                <label class="form-label">{{ column.name }}</label>
+                <input type="text" class="form-control filter-text" 
+                       data-column="{{ column.name }}" placeholder="Filter {{ column.name }}">
+            </div>
+            {% elif column.type in ('INTEGER', 'REAL', 'FLOAT', 'DOUBLE', 'NUMERIC') %}
+            <div class="col-md-4">
+                <label class="form-label">{{ column.name }}</label>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <input type="number" class="form-control filter-number-min" 
+                               data-column="{{ column.name }}" placeholder="Min">
                     </div>
-                    <div class="form-check me-3">
-                        <input class="form-check-input category-filter" type="checkbox" value="B" id="categoryB" checked>
-                        <label class="form-check-label" for="categoryB">B</label>
-                    </div>
-                    <div class="form-check me-3">
-                        <input class="form-check-input category-filter" type="checkbox" value="C" id="categoryC" checked>
-                        <label class="form-check-label" for="categoryC">C</label>
-                    </div>
-                    <div class="form-check me-3">
-                        <input class="form-check-input category-filter" type="checkbox" value="D" id="categoryD" checked>
-                        <label class="form-check-label" for="categoryD">D</label>
+                    <div class="col-6">
+                        <input type="number" class="form-control filter-number-max" 
+                               data-column="{{ column.name }}" placeholder="Max">
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <label class="form-label">Date Range</label>
-                <div class="row">
-                    <div class="col-md-6">
-                        <input type="date" class="form-control" id="startDate">
-                    </div>
-                    <div class="col-md-6">
-                        <input type="date" class="form-control" id="endDate">
-                    </div>
-                </div>
-            </div>
+            {% endif %}
+            {% endfor %}
+            
             <div class="col-12">
                 <button type="submit" class="btn btn-primary">Apply Filters</button>
                 <button type="reset" class="btn btn-secondary">Reset</button>
@@ -106,111 +104,128 @@
 
 <!-- Charts -->
 <div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Category Distribution</h5>
-                <div id="barChart" class="chart-container"></div>
+    {% if charts %}
+        {% for chart_id, chart_data in charts.items() %}
+            {% if chart_data and chart_data.json %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">{{ chart_data.config.title }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="{{ chart_id|replace('.', '_') }}" class="chart-container"></div>
+                    </div>
+                </div>
             </div>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            No charts could be generated for this data. Try selecting a different table or running a custom query.
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Values Over Time</h5>
-                <div id="lineChart" class="chart-container"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Value by Date, Size, and Category</h5>
-                <div id="scatterPlot" class="chart-container"></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Category Distribution</h5>
-                <div id="pieChart" class="chart-container"></div>
-            </div>
-        </div>
-    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Parse JSON data passed from Flask
-    const plot1 = JSON.parse('{{ plot1 | safe }}');
-    const plot2 = JSON.parse('{{ plot2 | safe }}');
-    const plot3 = JSON.parse('{{ plot3 | safe }}');
-    const plot4 = JSON.parse('{{ plot4 | safe }}');
-    
-    // Create charts
-    Plotly.newPlot('barChart', plot1.data, plot1.layout);
-    Plotly.newPlot('lineChart', plot2.data, plot2.layout);
-    Plotly.newPlot('scatterPlot', plot3.data, plot3.layout);
-    Plotly.newPlot('pieChart', plot4.data, plot4.layout);
-    
-    // Handle filter form submission
-    document.getElementById('filter-form').addEventListener('submit', function(e) {
-        e.preventDefault();
+    document.addEventListener('DOMContentLoaded', function() {
+        // Create charts
+        {% if charts %}
+            {% for chart_id, chart_data in charts.items() %}
+                {% if chart_data and chart_data.json %}
+                try {
+                    const chartData = {{ chart_data.json|safe }};
+                    const chartElement = document.getElementById('{{ chart_id|replace('.', '_') }}');
+                    
+                    if (chartElement && chartData && chartData.data) {
+                        Plotly.newPlot(chartElement, chartData.data, chartData.layout || {});
+                    }
+                } catch (error) {
+                    console.error('Error rendering chart {{ chart_id }}:', error);
+                    const chartElement = document.getElementById('{{ chart_id|replace('.', '_') }}');
+                    if (chartElement) {
+                        chartElement.innerHTML = '<div class="alert alert-danger">Error rendering chart</div>';
+                    }
+                }
+                {% endif %}
+            {% endfor %}
+        {% endif %}
         
-        // Get selected categories
-        const selectedCategories = [];
-        document.querySelectorAll('.category-filter:checked').forEach(checkbox => {
-            selectedCategories.push(checkbox.value);
-        });
-        
-        // Get date range
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        
-        // Prepare filter params
-        const filterParams = {
-            category: selectedCategories
-        };
-        
-        if (startDate && endDate) {
-            filterParams.date_range = [startDate, endDate];
+        // Handle filter form submission
+        const filterForm = document.getElementById('filter-form');
+        if (filterForm) {
+            filterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const filterParams = {};
+                
+                // Get text filters
+                document.querySelectorAll('.filter-text').forEach(input => {
+                    const column = input.dataset.column;
+                    const value = input.value.trim();
+                    if (value) {
+                        filterParams[column] = value;
+                    }
+                });
+                
+                // Get numeric range filters
+                const numericFilters = {};
+                document.querySelectorAll('.filter-number-min').forEach(input => {
+                    const column = input.dataset.column;
+                    const value = input.value.trim();
+                    if (value) {
+                        if (!numericFilters[column]) numericFilters[column] = {};
+                        numericFilters[column].min = parseFloat(value);
+                    }
+                });
+                
+                document.querySelectorAll('.filter-number-max').forEach(input => {
+                    const column = input.dataset.column;
+                    const value = input.value.trim();
+                    if (value) {
+                        if (!numericFilters[column]) numericFilters[column] = {};
+                        numericFilters[column].max = parseFloat(value);
+                    }
+                });
+                
+                // Add numeric filters to filter params
+                for (const [column, filter] of Object.entries(numericFilters)) {
+                    filterParams[column] = filter;
+                }
+                
+                // Send filter request
+                fetch(`/api/filter/{{ table_name }}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(filterParams)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Show alert with filtered data count
+                    alert(`Filter applied. Received ${Array.isArray(data) ? data.length : 0} records.`);
+                })
+                .catch(error => {
+                    console.error('Error filtering data:', error);
+                    alert('Error applying filters. See console for details.');
+                });
+            });
         }
         
-        // Send filter request
-        fetch('/api/filter', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(filterParams)
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Update charts with filtered data
-            // This would be implementation-specific based on how 
-            // you want to update the charts
-            console.log('Filtered data received:', data);
-            
-            // Example of how you might update a chart:
-            // Plotly.update('barChart', {x: [newXData], y: [newYData]});
-        })
-        .catch(error => console.error('Error filtering data:', error));
-    });
-    
-    // Handle form reset
-    document.querySelector('button[type="reset"]').addEventListener('click', function() {
-        // Reset charts to original data
-        setTimeout(() => {
-            Plotly.newPlot('barChart', plot1.data, plot1.layout);
-            Plotly.newPlot('lineChart', plot2.data, plot2.layout);
-            Plotly.newPlot('scatterPlot', plot3.data, plot3.layout);
-            Plotly.newPlot('pieChart', plot4.data, plot4.layout);
-        }, 100);
+        // Handle form reset
+        const resetButton = document.querySelector('button[type="reset"]');
+        if (resetButton) {
+            resetButton.addEventListener('click', function() {
+                // Simple reload after small delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 100);
+            });
+        }
     });
 </script>
 {% endblock %}

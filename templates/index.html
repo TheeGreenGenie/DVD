@@ -1,38 +1,50 @@
 {% extends 'base.html' %}
 
-{% block title %}Data Dashboard - Home{% endblock %}
+{% block title %}DB Dashboard - Home{% endblock %}
 
 {% block content %}
 <div class="jumbotron p-5 bg-light rounded">
-    <h1 class="display-4">Data Visualization Dashboard</h1>
-    <p class="lead">Explore and visualize data with interactive charts and statistical analysis.</p>
+    <h1 class="display-4">Database Visualization Dashboard</h1>
+    <p class="lead">Explore and visualize data from SQLite databases with interactive charts.</p>
     <hr class="my-4">
-    <p>Click the button below to view the dashboard.</p>
-    <a class="btn btn-primary btn-lg" href="/dashboard" role="button">Go to Dashboard</a>
+    
+    {% if is_connected %}
+    <p>You are connected to a database. View tables or run a custom query.</p>
+    <div class="btn-group">
+        <a class="btn btn-primary btn-lg" href="{{ url_for('tables') }}" role="button">View Tables</a>
+        <a class="btn btn-secondary btn-lg" href="{{ url_for('custom_query') }}" role="button">Custom Query</a>
+    </div>
+    {% else %}
+    <p>Connect to a database to start exploring your data.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('connect_db') }}" role="button">Connect Database</a>
+    {% endif %}
 </div>
 
 <div class="row mt-5">
     <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Interactive Visualizations</h5>
-                <p class="card-text">Explore your data through interactive charts and graphs.</p>
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-database text-primary" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">Connect Any SQLite Database</h5>
+                <p class="card-text">Upload or connect to any SQLite (.db) database to start exploring.</p>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Real-time Updates</h5>
-                <p class="card-text">Visualizations update in real-time as you filter and explore.</p>
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up text-primary" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">Automatic Visualizations</h5>
+                <p class="card-text">Get instant charts and insights based on your data structure.</p>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Data Insights</h5>
-                <p class="card-text">Gain insights through statistical analysis and trend detection.</p>
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-code-slash text-primary" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">Custom SQL Queries</h5>
+                <p class="card-text">Run your own SQL queries for more specific visualizations.</p>
             </div>
         </div>
     </div>

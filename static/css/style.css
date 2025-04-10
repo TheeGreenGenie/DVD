@@ -10,40 +10,67 @@ body {
 .card {
     border: none;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    overflow: hidden;
 }
 
-.card:hover {
-    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-}
-
-.card-title {
-    font-weight: 600;
-    color: #333;
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding: 1rem 1.25rem;
 }
 
 .jumbotron {
     background-color: #f1f8ff;
     border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+.btn-primary {
+    background-color: #4361ee;
+    border-color: #4361ee;
+}
+
+.btn-primary:hover {
+    background-color: #3a56d4;
+    border-color: #3a56d4;
+}
+
+.bg-primary {
+    background-color: #4361ee !important;
 }
 
 .chart-container {
-    border-radius: 6px;
-    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background-color: #f8f9fa;
 }
 
 .stats-card {
     border-radius: 10px;
-    overflow: hidden;
 }
 
 footer {
-    margin-top: 50px;
+    margin-top: 3rem;
 }
 
-.filter-panel {
-    background-color: #f8f9fb;
-    border-left: 4px solid #4285f4;
+pre {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 5px;
+    overflow: auto;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+    border-color: #4361ee;
 }

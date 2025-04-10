@@ -1,0 +1,49 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.card-title {
+    font-weight: 600;
+    color: #333;
+}
+
+.jumbotron {
+    background-color: #f1f8ff;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.chart-container {
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.stats-card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+footer {
+    margin-top: 50px;
+}
+
+.filter-panel {
+    background-color: #f8f9fb;
+    border-left: 4px solid #4285f4;
+}

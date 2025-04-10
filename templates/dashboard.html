@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}Data Dashboard - Visualizations{% endblock %}
+
+{% block head %}
+<style>
+    .stats-card {
+        transition: all 0.3s ease;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .chart-container {
+        height: 450px;
+        margin-bottom: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Data Dashboard</h1>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white stats-card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Records</h5>
+                <h2 class="display-5">{{ stats.total_records }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white stats-card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Average Value</h5>
+                <h2 class="display-5">{{ stats.average_value }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white stats-card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Maximum Value</h5>
+                <h2 class="display-5">{{ stats.max_value }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark stats-card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Minimum Value</h5>
+                <h2 class="display-5">{{ stats.min_value }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Panel -->
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0">Filter Data</h5>
+    </div>
+    <div class="card-body">
+        <form id="filter-form" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Category</label>
+                <div class="d-flex flex-wrap">
+                    <div class="form-check me-3">
+                        <input class="form-check-input category-filter" type="checkbox" value="A" id="categoryA" checked>
+                        <label class="form-check-label" for="categoryA">A</label>
+                    </div>
+                    <div class="form-check me-3">
+                        <input class="form-check-input category-filter" type="checkbox" value="B" id="categoryB" checked>
+                        <label class="form-check-label" for="categoryB">B</label>
+                    </div>
+                    <div class="form-check me-3">
+                        <input class="form-check-input category-filter" type="checkbox" value="C" id="categoryC" checked>
+                        <label class="form-check-label" for="categoryC">C</label>
+                    </div>
+                    <div class="form-check me-3">
+                        <input class="form-check-input category-filter" type="checkbox" value="D" id="categoryD" checked>
+                        <label class="form-check-label" for="categoryD">D</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Date Range</label>
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="date" class="form-control" id="startDate">
+                    </div>
+                    <div class="col-md-6">
+                        <input type="date" class="form-control" id="endDate">
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <button type="reset" class="btn btn-secondary">Reset</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Category Distribution</h5>
+                <div id="barChart" class="chart-container"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Values Over Time</h5>
+                <div id="lineChart" class="chart-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Value by Date, Size, and Category</h5>
+                <div id="scatterPlot" class="chart-container"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Category Distribution</h5>
+                <div id="pieChart" class="chart-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Parse JSON data passed from Flask
+    const plot1 = JSON.parse('{{ plot1 | safe }}');
+    const plot2 = JSON.parse('{{ plot2 | safe }}');
+    const plot3 = JSON.parse('{{ plot3 | safe }}');
+    const plot4 = JSON.parse('{{ plot4 | safe }}');
+    
+    // Create charts
+    Plotly.newPlot('barChart', plot1.data, plot1.layout);
+    Plotly.newPlot('lineChart', plot2.data, plot2.layout);
+    Plotly.newPlot('scatterPlot', plot3.data, plot3.layout);
+    Plotly.newPlot('pieChart', plot4.data, plot4.layout);
+    
+    // Handle filter form submission
+    document.getElementById('filter-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Get selected categories
+        const selectedCategories = [];
+        document.querySelectorAll('.category-filter:checked').forEach(checkbox => {
+            selectedCategories.push(checkbox.value);
+        });
+        
+        // Get date range
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        // Prepare filter params
+        const filterParams = {
+            category: selectedCategories
+        };
+        
+        if (startDate && endDate) {
+            filterParams.date_range = [startDate, endDate];
+        }
+        
+        // Send filter request
+        fetch('/api/filter', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(filterParams)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Update charts with filtered data
+            // This would be implementation-specific based on how 
+            // you want to update the charts
+            console.log('Filtered data received:', data);
+            
+            // Example of how you might update a chart:
+            // Plotly.update('barChart', {x: [newXData], y: [newYData]});
+        })
+        .catch(error => console.error('Error filtering data:', error));
+    });
+    
+    // Handle form reset
+    document.querySelector('button[type="reset"]').addEventListener('click', function() {
+        // Reset charts to original data
+        setTimeout(() => {
+            Plotly.newPlot('barChart', plot1.data, plot1.layout);
+            Plotly.newPlot('lineChart', plot2.data, plot2.layout);
+            Plotly.newPlot('scatterPlot', plot3.data, plot3.layout);
+            Plotly.newPlot('pieChart', plot4.data, plot4.layout);
+        }, 100);
+    });
+</script>
+{% endblock %}

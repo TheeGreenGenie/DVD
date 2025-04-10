@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Data Dashboard - Home{% endblock %}
+
+{% block content %}
+<div class="jumbotron p-5 bg-light rounded">
+    <h1 class="display-4">Data Visualization Dashboard</h1>
+    <p class="lead">Explore and visualize data with interactive charts and statistical analysis.</p>
+    <hr class="my-4">
+    <p>Click the button below to view the dashboard.</p>
+    <a class="btn btn-primary btn-lg" href="/dashboard" role="button">Go to Dashboard</a>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Interactive Visualizations</h5>
+                <p class="card-text">Explore your data through interactive charts and graphs.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Real-time Updates</h5>
+                <p class="card-text">Visualizations update in real-time as you filter and explore.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Data Insights</h5>
+                <p class="card-text">Gain insights through statistical analysis and trend detection.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

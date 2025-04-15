@@ -72,7 +72,7 @@ def tables():
 
     # Add basic stats for the tables page
     stats = {
-        'total_records': 0,  # You might want to calculate this or set a default
+        'total_records': 0,
     }
     
 
